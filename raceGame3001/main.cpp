@@ -9,23 +9,19 @@
 
 int main()
 {
-    // setup window
-    sf::RenderWindow window(sf::VideoMode(200, 200), "Title");
-    
-    // create game instance
-    Game game(&window);
-    //window.setFramerateLimit(300);
-    
     // time stuff
     sf::Clock clock;
     sf::Time elapsed = clock.restart();
+    
+    // setup window
+    sf::RenderWindow window(sf::VideoMode(800, 600), "", sf::Style::None);
+    
+    // create game instance
+    Game game(&window);
+    game.Init();
+    
 
-    // variables
-    //sf::CircleShape shape(100.f);
-    //shape.setFillColor(sf::Color::Green);
-
-
-    // tick
+    // main loop
     while (window.isOpen())
     {
         // handle events
@@ -37,33 +33,31 @@ int main()
             case sf::Event::Resized:
             case sf::Event::LostFocus:
             case sf::Event::GainedFocus:
-            // case sf::Event::
-            // case sf::Event::
-            // case sf::Event::
             default:
                 break;
             case sf::Event::Closed:
                 window.close();
                 break;
             case sf::Event::KeyPressed:
-                game.onKeyPressed(event.key.code);
-                //printf("keypress: %i\n", event.key.code);
+                game.onKeyDown(event);
                 break;
+            case sf::Event::KeyReleased:
+                game.onKeyDown(event);
+                break;
+            case sf::Event::MouseButtonPressed:
+                game.onMouseDown(event);
+                break;
+            case sf::Event::MouseButtonReleased:
+                game.onMouseUp(event);
+                break;
+               
             }
         }
         
-
-        // calculate dt
+        // tick the game
         elapsed = clock.restart();
         game.tick(elapsed.asSeconds());
 
-        
-        
-
-        // game code
-        /*window.clear();
-        window.draw(shape);
-        window.display();*/
     }
 
     return 0;
