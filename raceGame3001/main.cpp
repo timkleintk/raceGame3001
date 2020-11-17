@@ -9,12 +9,11 @@
 
 int main()
 {
-    // initialization
-    Game game;
-
-
     // setup window
     sf::RenderWindow window(sf::VideoMode(200, 200), "Title");
+    
+    // create game instance
+    Game game(&window);
     //window.setFramerateLimit(300);
     
     // time stuff
@@ -47,7 +46,7 @@ int main()
                 window.close();
                 break;
             case sf::Event::KeyPressed:
-                game.onKeyPress(event.key.code);
+                game.onKeyPressed(event.key.code);
                 //printf("keypress: %i\n", event.key.code);
                 break;
             }

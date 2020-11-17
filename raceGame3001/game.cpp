@@ -1,11 +1,6 @@
 #include "game.h"
 #include <SFML/Graphics.hpp>
 
-Game::Game()
-{
-
-}
-
 Game::~Game()
 {
 
@@ -21,7 +16,12 @@ void Game::tick(float dt)
 
 }
 
-void Game::onKeyPress(int keycode)
+void Game::onKeyPressed(int keycode)
+{
+
+}
+
+void Game::onKeyReleased(int keycode)
 {
 
 }

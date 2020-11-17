@@ -8,7 +8,7 @@ class RenderWindow;
 class Game
 {
 public:
-	Game();
+	Game(sf::RenderWindow* w = 0) : m_window(w) {}
 	~Game();
 
 	void Init();
@@ -16,9 +16,10 @@ public:
 
 	void tick(float dt);
 
-	void onKeyPress(int keycode);
+	void onKeyPressed(int keycode);
+	void onKeyReleased(int keycode);
 	
 private:
-	sf::RenderWindow* m_window;
+	sf::RenderWindow* m_window = 0;
 	
 };
