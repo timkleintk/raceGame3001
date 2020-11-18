@@ -1,10 +1,13 @@
 #pragma once
 
-namespace sf
-{
-class RenderWindow;
-class Event;
-}
+#include <sfml/system/Vector2.hpp>
+#include <SFML/Graphics.hpp>
+
+typedef sf::Vector2f vec2;
+typedef sf::Vector2<int> ivec;
+typedef sf::Vector2<float> fvec;
+
+#define PI 3.14159265358979323846
 
 class Game
 {

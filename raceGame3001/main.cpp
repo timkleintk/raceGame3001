@@ -42,7 +42,7 @@ int main()
                 game.onKeyDown(event);
                 break;
             case sf::Event::KeyReleased:
-                game.onKeyDown(event);
+                game.onKeyUp(event);
                 break;
             case sf::Event::MouseButtonPressed:
                 game.onMouseDown(event);

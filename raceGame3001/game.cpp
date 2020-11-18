@@ -1,15 +1,19 @@
 #include "game.h"
+#include "raceCar.h"
+#include "camera.h"
 #include <SFML/Graphics.hpp>
 
 
-// i dont want to type sf::Vector2<float> all the time
-typedef sf::Vector2f vec2;
-typedef sf::Vector2<int> ivec;
-typedef sf::Vector2<float> fvec;
+enum buttons { LEFT, RIGHT, UP, DOWN, NUMBUTTONS };
+bool buttons[NUMBUTTONS] = { false };
 
-sf::Texture* aTexture;
-sf::Sprite* aSprite;
 
+sf::Texture* carTexture;
+//sf::Sprite* aSprite;
+
+RaceCar player;
+
+Camera cam;
 
 sf::RectangleShape* gui;
 sf::Texture* guiTexture;
@@ -21,11 +25,6 @@ bool grabbedWindow = false;
 ivec grabOffset;
 
 
-void drawGUI(sf::RenderWindow* w)
-{
-	w->draw(*gui);
-}
-
 void Game::Init()
 {
 	// window stuff
@@ -34,22 +33,19 @@ void Game::Init()
 
 
 	// global variables
-	aTexture = new sf::Texture();
-	if (!aTexture->loadFromFile("assets/img/f1.png")) { printf("error loading in f1 car\n"); }
-	aTexture->setSmooth(true);
-
-	aSprite = new sf::Sprite();
-	aSprite->setTexture(*aTexture);
-	float scale = 1.0f;
-	aSprite->setScale(scale, scale);
-
-
+	carTexture = new sf::Texture();
+	if (!carTexture->loadFromFile("assets/img/minicar.png")) { printf("error loading in the car\n"); }
+	carTexture->setSmooth(true);
+	player.getShape()->setTexture(carTexture);
 
 
 	guiTexture = new sf::Texture();
 	if (!guiTexture->loadFromFile("assets/img/window.png")) { printf("error loading in window\n"); }
 	gui = new sf::RectangleShape(vec2(m_window->getSize()));
 	gui->setTexture(guiTexture);
+
+	// cam
+	cam.setTarget(m_window);
 
 }
 
@@ -60,28 +56,49 @@ void Game::tick(float dt)
 
 	// draw
 	m_window->clear();
-	drawGUI(m_window);
-	
+	cam.draw(gui, HUD);
+	cam.draw(gui, BACKGROUND);
+	//m_window->draw(*gui);
+
+	if (buttons[LEFT]) { player.turn(-1, dt); }
+	if (buttons[RIGHT]) { player.turn(1, dt); }
+	if (buttons[UP]) { player.accelerate(dt); }
+	if (buttons[DOWN]) { player.brake(dt); }
+	//player.applyForce(fvec(1, 0));
+	player.update(dt);
+	//player.draw(m_window);
+	cam.draw(player.getShape(), MIDDLE);
 	//m_window->draw(*aSprite);
 
-	m_window->display();
+	cam.follow(&player);
+	cam.draw();
+	//m_window->display();
 }
 
 void Game::onKeyDown(sf::Event e)
 {
 	switch (e.key.code)
 	{
-	case sf::Keyboard::Escape:
-		m_window->close();
-		break;
-	default:
-		break;
+	case sf::Keyboard::Escape: m_window->close(); break;
+	case 71: buttons[LEFT] = true; break;
+	case 72: buttons[RIGHT] = true;	break;
+	case 73: buttons[UP] = true; break;
+	case 74: buttons[DOWN] = true; break;
+	default: printf("key %i pressed\n", e.key.code); break;
 	}
 }
 
 void Game::onKeyUp(sf::Event e)
 {
-	
+	switch (e.key.code)
+	{
+	case 71: buttons[LEFT] = false; break;
+	case 72: buttons[RIGHT] = false; break;
+	case 73: buttons[UP] = false; break;
+	case 74: buttons[DOWN] = false; break;
+
+	default: break;
+	}
 }
 
 void Game::onMouseDown(sf::Event e)
