@@ -20,6 +20,9 @@ public:
 	void drawHud();
 	void draw();
 
+	fvec getPos() const { return m_transformable.getPosition(); }
+	ivec getSize() const { return ivec(m_window->getSize()); }
+
 private:
 	std::vector<Drawable*> queues[NUMLEVELS];
 
