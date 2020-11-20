@@ -10,7 +10,10 @@
 #include <iostream>
 
 #define tireid 13
+#define grassid 17
 #define bracketid 65
+
+#define slowDownSpeed 100.0f
 
 using namespace sf;
 using namespace std;
@@ -32,13 +35,16 @@ Camera cam;
 RectangleShape* gui;
 Texture* guiTexture;
 
+Font* font;
+Text* lapTime;
+
 RectangleShape* mapng;
 Texture* mapTexture;
 #define tileScale 1.0f
 
 //fvec mapSize(1024, 512);
 
-
+float timePassed = 0.0f;
 
 
 const IntRect xButton(ivec(756, 12), ivec(30, 26));
@@ -60,7 +66,6 @@ void Game::Init()
 	carTexture->setSmooth(true);
 	player.getShape()->setTexture(carTexture);
 
-
 	guiTexture = new Texture();
 	if (!guiTexture->loadFromFile("assets/img/window.png")) { printf("error loading in window\n"); }
 	gui = new RectangleShape(vec2(m_window->getSize()));
@@ -81,7 +86,7 @@ void Game::Init()
 		{
 			//printf("(%f,%f)\n", tPos.x, tPos.y);
 			mapfile.get(buffer, 1024, ',');
-			if (parseInt(buffer) == tireid)
+			if (parseInt(buffer) == grassid)
 			{
 				RectangleShape* r = new RectangleShape(fvec(TILESZ, TILESZ));
 				r->setPosition(tPos);
@@ -105,9 +110,16 @@ void Game::Init()
 		mapfile.get();
 	}
 	mapfile.close();
-	tires.push_back(new RectangleShape(fvec(TILESZ, TILESZ)));
-		
+	//tires.push_back(new RectangleShape(fvec(TILESZ, TILESZ)));
 
+	font = new Font;
+	if (!font->loadFromFile("assets/font/arial.ttf")) { printf("error loading in the font\n"); }
+
+	lapTime = new Text;
+	lapTime->setFont(*font);
+	lapTime->setPosition(fvec(100, 100));
+	lapTime->setCharacterSize(24);
+	
 
 	// cam
 	cam.setTarget(m_window);
@@ -116,8 +128,12 @@ void Game::Init()
 
 void Game::tick(float dt)
 {
+
+	timePassed += dt;
 	// moving the window?
 	if (grabbedWindow) { m_window->setPosition(Mouse::getPosition() + grabOffset); }
+
+
 
 	// draw
 	m_window->clear();
@@ -139,18 +155,24 @@ void Game::tick(float dt)
 		
 		//m_window->draw(RectangleShape(fvec(TILESZ, TILESZ)).setPosition(fvec(t->left, t->top)));
 		//m_window->draw(*t);
-		cam.draw(t, FOREGROUND);
+		//cam.draw(t, FOREGROUND);
 		FloatRect intersection;
 		if (player.getShape()->getGlobalBounds().intersects(t->getGlobalBounds(), intersection))
 		{
-			float r = player.getShape()->getRotation();
-			printf("%f\n", r);
+			player.brake(dt);
+			player.accelerate(dt);
 		}
 	}
 	//player.draw(m_window);
 	cam.draw(player.getShape(), MIDDLE);
 	//m_window->draw(*aSprite);
 
+	char str[] = "Laptime: 00000.00";
+	sprintf_s(str, "Laptime:%.2f", timePassed);
+	lapTime->setString(str);
+	
+	cam.draw(lapTime, HUD);
+	
 	cam.follow(&player);
 	cam.draw();
 	//m_window->display();

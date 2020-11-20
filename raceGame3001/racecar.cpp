@@ -7,7 +7,7 @@
 
 
 float turnspeed = 1.0f;
-float acceleration = 300.0f;
+float acceleration = 200.0f;
 float brakingForce = 300.0f;
 float maxVel = 500.0f;
 
@@ -44,6 +44,7 @@ void RaceCar::accelerate(float dt)
 {
 	m_vel += acceleration * dt;
 }
+
 
 void RaceCar::brake(float dt)
 {
