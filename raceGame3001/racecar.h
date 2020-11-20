@@ -31,7 +31,7 @@ public:
 	
 private:
 	RectangleShape m_shape;
-	float m_vel = 100.0f;
+	float m_vel = 0.0f;
 	fvec m_force = fvec(0, 0);
 	float m_mass = 1.0f;
 };

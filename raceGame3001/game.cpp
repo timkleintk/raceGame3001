@@ -3,24 +3,46 @@
 #include "camera.h"
 #include <SFML/Graphics.hpp>
 
+#include "map.h"
+
+
+#include <fstream>
+#include <iostream>
+
+#define tireid 13
+#define bracketid 65
+
+using namespace sf;
+using namespace std;
 
 enum buttons { LEFT, RIGHT, UP, DOWN, NUMBUTTONS };
 bool buttons[NUMBUTTONS] = { false };
 
+Map map;
 
-sf::Texture* carTexture;
-//sf::Sprite* aSprite;
+Texture* carTexture;
+//Sprite* aSprite;
+
+vector<RectangleShape*> tires;
 
 RaceCar player;
 
 Camera cam;
 
-sf::RectangleShape* gui;
-sf::Texture* guiTexture;
+RectangleShape* gui;
+Texture* guiTexture;
+
+RectangleShape* mapng;
+Texture* mapTexture;
+#define tileScale 1.0f
+
+//fvec mapSize(1024, 512);
 
 
-const sf::IntRect xButton(ivec(756, 12), ivec(30, 26));
-const sf::IntRect grabWindow(ivec(8, 8), ivec(784, 36));
+
+
+const IntRect xButton(ivec(756, 12), ivec(30, 26));
+const IntRect grabWindow(ivec(8, 8), ivec(784, 36));
 bool grabbedWindow = false;
 ivec grabOffset;
 
@@ -29,20 +51,63 @@ void Game::Init()
 {
 	// window stuff
 	m_window->setFramerateLimit(300);
-	//m_window->setSize(sf::Vector2u())
+	//m_window->setSize(Vector2u())
 
 
 	// global variables
-	carTexture = new sf::Texture();
+	carTexture = new Texture();
 	if (!carTexture->loadFromFile("assets/img/minicar.png")) { printf("error loading in the car\n"); }
 	carTexture->setSmooth(true);
 	player.getShape()->setTexture(carTexture);
 
 
-	guiTexture = new sf::Texture();
+	guiTexture = new Texture();
 	if (!guiTexture->loadFromFile("assets/img/window.png")) { printf("error loading in window\n"); }
-	gui = new sf::RectangleShape(vec2(m_window->getSize()));
+	gui = new RectangleShape(vec2(m_window->getSize()));
 	gui->setTexture(guiTexture);
+
+	mapTexture = new Texture();
+	if (!mapTexture->loadFromFile("assets/img/racing.png")) { printf("error loading in the car\n"); }
+	mapng = new RectangleShape(fvec(mapTexture->getSize())* tileScale);
+	mapng->setTexture(mapTexture);
+
+	fstream mapfile;
+	char buffer[1024];
+	mapfile.open("assets/maps/track1.csv", ios::in);
+	fvec tPos;
+	for (tPos.y = 0; tPos.y < mapng->getSize().y; tPos.y += TILESZ)
+	{
+		for (tPos.x = 0; tPos.x < mapng->getSize().x - TILESZ; tPos.x+= TILESZ)
+		{
+			//printf("(%f,%f)\n", tPos.x, tPos.y);
+			mapfile.get(buffer, 1024, ',');
+			if (parseInt(buffer) == tireid)
+			{
+				RectangleShape* r = new RectangleShape(fvec(TILESZ, TILESZ));
+				r->setPosition(tPos);
+				tires.push_back(r);
+			}
+			else if (parseInt(buffer) == bracketid)
+			{
+				player.getShape()->setPosition(fvec(tPos.x,tPos.y));
+				player.getShape()->setRotation(180);
+			
+			}
+			mapfile.get();
+		}
+		mapfile.get(buffer, 1024);
+		if (parseInt(buffer) == tireid)
+		{
+			RectangleShape* r = new RectangleShape(fvec(TILESZ, TILESZ));
+			r->setPosition(tPos);
+			tires.push_back(r);
+		}
+		mapfile.get();
+	}
+	mapfile.close();
+	tires.push_back(new RectangleShape(fvec(TILESZ, TILESZ)));
+		
+
 
 	// cam
 	cam.setTarget(m_window);
@@ -52,12 +117,13 @@ void Game::Init()
 void Game::tick(float dt)
 {
 	// moving the window?
-	if (grabbedWindow) { m_window->setPosition(sf::Mouse::getPosition() + grabOffset); }
+	if (grabbedWindow) { m_window->setPosition(Mouse::getPosition() + grabOffset); }
 
 	// draw
 	m_window->clear();
 	cam.draw(gui, HUD);
-	cam.draw(gui, BACKGROUND);
+	//cam.draw(gui, BACKGROUND);
+	cam.draw(mapng, BACKGROUND);
 	//m_window->draw(*gui);
 
 	if (buttons[LEFT]) { player.turn(-1, dt); }
@@ -66,6 +132,21 @@ void Game::tick(float dt)
 	if (buttons[DOWN]) { player.brake(dt); }
 	//player.applyForce(fvec(1, 0));
 	player.update(dt);
+	for (auto t : tires)
+	{
+		//RectangleShape rect(fvec(TILESZ, TILESZ));
+		//rect.setPosition(fvec(t->left, t->top));
+		
+		//m_window->draw(RectangleShape(fvec(TILESZ, TILESZ)).setPosition(fvec(t->left, t->top)));
+		//m_window->draw(*t);
+		cam.draw(t, FOREGROUND);
+		FloatRect intersection;
+		if (player.getShape()->getGlobalBounds().intersects(t->getGlobalBounds(), intersection))
+		{
+			float r = player.getShape()->getRotation();
+			printf("%f\n", r);
+		}
+	}
 	//player.draw(m_window);
 	cam.draw(player.getShape(), MIDDLE);
 	//m_window->draw(*aSprite);
@@ -75,11 +156,11 @@ void Game::tick(float dt)
 	//m_window->display();
 }
 
-void Game::onKeyDown(sf::Event e)
+void Game::onKeyDown(Event e)
 {
 	switch (e.key.code)
 	{
-	case sf::Keyboard::Escape: m_window->close(); break;
+	case Keyboard::Escape: m_window->close(); break;
 	case 71: buttons[LEFT] = true; break;
 	case 72: buttons[RIGHT] = true;	break;
 	case 73: buttons[UP] = true; break;
@@ -88,7 +169,7 @@ void Game::onKeyDown(sf::Event e)
 	}
 }
 
-void Game::onKeyUp(sf::Event e)
+void Game::onKeyUp(Event e)
 {
 	switch (e.key.code)
 	{
@@ -101,18 +182,18 @@ void Game::onKeyUp(sf::Event e)
 	}
 }
 
-void Game::onMouseDown(sf::Event e)
+void Game::onMouseDown(Event e)
 {
-	if (e.mouseButton.button == sf::Mouse::Left)
+	if (e.mouseButton.button == Mouse::Left)
 	{
 		//if (e.mouseButton.x)
 		if (xButton.contains(e.mouseButton.x, e.mouseButton.y)) { m_window->close(); }
-		if (grabWindow.contains(e.mouseButton.x, e.mouseButton.y)) { grabbedWindow = true; grabOffset = m_window->getPosition() - sf::Mouse::getPosition();
+		if (grabWindow.contains(e.mouseButton.x, e.mouseButton.y)) { grabbedWindow = true; grabOffset = m_window->getPosition() - Mouse::getPosition();
 		}
 	}
 }
 
-void Game::onMouseUp(sf::Event e)
+void Game::onMouseUp(Event e)
 {
-	if (grabbedWindow) { grabbedWindow = false; m_window->setPosition(sf::Mouse::getPosition() + grabOffset); }
+	if (grabbedWindow) { grabbedWindow = false; m_window->setPosition(Mouse::getPosition() + grabOffset); }
 }

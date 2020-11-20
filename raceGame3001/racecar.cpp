@@ -2,6 +2,10 @@
 #include "game.h"
 #include "racecar.h"
 
+#define carscale 1.0f
+
+
+
 float turnspeed = 1.0f;
 float acceleration = 300.0f;
 float brakingForce = 300.0f;
@@ -21,7 +25,7 @@ void RaceCar::update(float dt)
 
 RaceCar::RaceCar()
 {
-	m_shape = RectangleShape(fvec(32, 22));
+	m_shape = RectangleShape(fvec(32, 22) * carscale);
 	m_shape.setOrigin(fvec(16, 11));
 	m_shape.setPosition(fvec(100, 100));
 }

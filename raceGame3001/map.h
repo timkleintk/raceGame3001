@@ -16,6 +16,8 @@ struct Tile
 };
 
 
+int parseInt(char* b);
+
 //class TileFactory;
 //class Tile;
 //class GenericObjectSpawner;
